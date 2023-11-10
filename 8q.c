@@ -150,20 +150,24 @@ Board generateNextBoard(Board* board, int rowFill, int colFill) {
     copyBoard(&nextBoard, board);
     nextBoard.nextRow = rowFill + 1;
     nextBoard.arr[rowFill][colFill] = QUEEN;
-    return nextBoard;
-    // int colMask = nextBoard->colMask;
-    // int diagonal1Mask = nextBoard->diagonal1Mask;
-    // int diagonal2Mask = nextBoard->diagonal2Mask;
-    // int diag1Val = rowFill - colFill + MAX_BOARD_SIZE;
-    // int diag2Val = rowFill + colFill;
+    // return nextBoard;
+    int colMask = nextBoard.colMask;
+    int diagonal1Mask = nextBoard.diagonal1Mask;
+    int diagonal2Mask = nextBoard.diagonal2Mask;
+    int diag1Val = rowFill - colFill + MAX_BOARD_SIZE;
+    int diag2Val = rowFill + colFill;
 
-    // nextBoard->colMask = (colMask | (1 << colFill));
-    // nextBoard->diagonal2Mask = (diagonal2Mask | (1 << diag2Val));
-    // nextBoard->diagonal1Mask = (diagonal1Mask | (1 << diag1Val));
+    nextBoard.colMask = (colMask | (1 << colFill));
+    nextBoard.diagonal2Mask = (diagonal2Mask | (1 << diag2Val));
+    nextBoard.diagonal1Mask = (diagonal1Mask | (1 << diag1Val));
+    return nextBoard;
 }
 
 void copyBoard(Board* copy, Board* original) {
     copy->size = original->size;
+    copy->colMask = original->colMask;
+    copy->diagonal1Mask = original->diagonal1Mask;
+    copy->diagonal2Mask = original->diagonal2Mask;
     for (int row = 0; row < copy->size; row++) {
         for (int col = 0; col < copy->size; col++) {
             copy->arr[row][col] = original->arr[row][col];
@@ -258,70 +262,85 @@ void initializeQueue(Queue* queue) {
 }
 
 bool checkColumn(Board* b, int col){
-    int res = 0;
-    for(int row=0;row<b->size;row++){
-        if(res > 0){
-            return false;
-        }
-        if(b->arr[row][col] == QUEEN){
-            res++;
-        }
-    }
-    return res == 0;
+    // int res = 0;
+    // for(int row=0;row<b->size;row++){
+    //     if(res > 0){
+    //         return false;
+    //     }
+    //     if(b->arr[row][col] == QUEEN){
+    //         res++;
+    //     }
+    // }
+    // return res == 0;
+    int colMask = b->colMask;
+    return ((colMask & (1 << col)) == 0);
 }
 
 bool checkDiagonal1(Board* b, int row, int col){
-    int size = b->size;
-    int res = 0;
-    int r = row, c = col;
-    while(r < size && c < size){
-        if(res > 0) return false;
-        if(b->arr[r][c] == QUEEN){
-            res++;
-        }
-        r++;
-        c++;
+    // int size = b->size;
+    // int res = 0;
+    // int r = row, c = col;
+    // while(r < size && c < size){
+    //     if(res > 0) return false;
+    //     if(b->arr[r][c] == QUEEN){
+    //         res++;
+    //     }
+    //     r++;
+    //     c++;
+    // }
+    // r = row-1;
+    // c = col-1;
+    // while(r >= 0 && c >= 0){
+    //     if(res > 0) return false;
+    //     if(b->arr[r][c] == QUEEN){
+    //         res++;
+    //     }
+    //     r--;
+    //     c--;
+    // }
+    // return res == 0;
+    int diagonal1Mask = b->diagonal1Mask;
+    int diag1Val = row - col + MAX_BOARD_SIZE;
+    if ((diagonal1Mask & (1 << diag1Val)) > 0) {
+        return false;
     }
-    r = row-1;
-    c = col-1;
-    while(r >= 0 && c >= 0){
-        if(res > 0) return false;
-        if(b->arr[r][c] == QUEEN){
-            res++;
-        }
-        r--;
-        c--;
-    }
-    return res == 0;
+    return true;
 }
 
 bool checkDiagonal2(Board* b, int row, int col){
-    int size = b->size;
-    int res = 0;
-    int r = row, c = col;
-    while(r >= 0 && c < size){
-        if(res > 0) return false;
-        if(b->arr[r][c] == QUEEN){
-            res++;
-        }
-        r--;
-        c++;
+    // int size = b->size;
+    // int res = 0;
+    // int r = row, c = col;
+    // while(r >= 0 && c < size){
+    //     if(res > 0) return false;
+    //     if(b->arr[r][c] == QUEEN){
+    //         res++;
+    //     }
+    //     r--;
+    //     c++;
+    // }
+    // r = row+1;
+    // c = col-1;
+    // while(r < size && c >= 0){
+    //     if(res > 0) return false;
+    //     if(b->arr[r][c] == QUEEN){
+    //         res++;
+    //     }
+    //     r++;
+    //     c--;
+    // }
+    // return res == 0;
+    int diag2Val = row + col;
+    int diagonal2Mask = b->diagonal2Mask;
+    if ((diagonal2Mask & (1 << diag2Val)) > 0) {
+        return false;
     }
-    r = row+1;
-    c = col-1;
-    while(r < size && c >= 0){
-        if(res > 0) return false;
-        if(b->arr[r][c] == QUEEN){
-            res++;
-        }
-        r++;
-        c--;
-    }
-    return res == 0;
+    return true;
 }
 
 
 void test() {
+    assert(sizeof(int) == 4);
     // Queue q;
     // initializeQueue(&q);
     // assert(q.start == 0 && q.end == 0);

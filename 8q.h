@@ -28,6 +28,6 @@ typedef struct Queue {
 } Queue;
 
 typedef struct Result {
-    char arr[MAX_SOLUTION_SIZE][MAX_BOARD_SIZE + 4];
+    int arr[MAX_SOLUTION_SIZE][MAX_BOARD_SIZE];
     int nextIndex;
 } Result;

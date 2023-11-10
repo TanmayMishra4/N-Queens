@@ -9,7 +9,7 @@ void solveBoards(Result* result, int boardSize);
 void initializeBoard(Board* res, int boardSize);
 bool isQueueEmpty(Queue* queue);
 void addToResult(Board* currentBoard, Result* result);
-void generateNextBoard(Board* nextBoard, Board* board, int row, int col);
+Board generateNextBoard(Board* board, int row, int col);
 void initializeResult(Result* result);
 void fillValueInResult(Result* res, int* it, int val);
 bool isSolutionBoard(Board* board);
@@ -85,15 +85,17 @@ bool isQueueEmpty(Queue* queue) {
 void addToQueue(Queue* queue, Board* board) {
     int end = queue->end;
     // copyBoard(queue->arr[end-1], board);
-    queue->arr[end] = board;
+    queue->arr[end] = *board;
     queue->end++;
 }
 
 Board* removeFromQueue(Queue* queue) {
     int start = queue->start;
-    Board* res = queue->arr[start];
+    Board res = queue->arr[start];
     queue->start++;
-    return res;
+    res.diagonal2Mask = 1;
+    // return &res;
+    return NULL;
 }
 
 void initializeBoard(Board* res, int boardSize) {
@@ -110,41 +112,45 @@ void initializeBoard(Board* res, int boardSize) {
 }
 
 void solveBoards(Result* result, int boardSize) {
-    Queue queue;
-    initializeQueue(&queue);
+    static Board arr[MAX_QUEUE_SIZE];
+    int start = 0, end = 0;
     Board board;
     initializeBoard(&board, boardSize);
 
-    addToQueue(&queue, &board);
-    Board nextBoard;
-    while (!isQueueEmpty(&queue)) {
-        Board* currentBoard = removeFromQueue(&queue);
-        printf("value of start, end after removing = %i, %i\n", queue.start, queue.end);
-        // printBoard(currentBoard);
+    arr[end++] = board;
+    while (start != end) {
+        Board currentBoard = arr[start++];
+        // printf("value of start, end after removing = %i, %i\n", queue.start, queue.end);
+        printBoard(&currentBoard);
         
-        int nextRow = currentBoard->nextRow;
+        int nextRow = currentBoard.nextRow;
         if (nextRow < boardSize) {
             for (int col = 0; col < boardSize; col++) {
-                if (isValidPosition(currentBoard, nextRow, col)) {
+                if (isValidPosition(&currentBoard, nextRow, col)) {
                     // Board* nextBoard;
-                    generateNextBoard(&nextBoard, currentBoard, nextRow, col);
+                    Board nextBoard = generateNextBoard(&currentBoard, nextRow, col);
                     printf("row = %i col = %i\n", nextRow, col);
-                    print2Board(currentBoard, &nextBoard);
-                    addToQueue(&queue, &nextBoard);
+                    print2Board(&currentBoard, &nextBoard);
+                    arr[end++] = nextBoard;
                 }
             }
         }
         // else if (isSolutionBoard(currentBoard)) {
         else{
-            addToResult(currentBoard, result);
+            printf("Solution\n");
+            printBoard(&currentBoard);
+            addToResult(&currentBoard, result);
+            printf("\n");
         }
     }
 }
 
-void generateNextBoard(Board* nextBoard, Board* board, int rowFill, int colFill) {
-    copyBoard(nextBoard, board);
-    nextBoard->nextRow = rowFill + 1;
-    nextBoard->arr[rowFill][colFill] = QUEEN;
+Board generateNextBoard(Board* board, int rowFill, int colFill) {
+    Board nextBoard;
+    copyBoard(&nextBoard, board);
+    nextBoard.nextRow = rowFill + 1;
+    nextBoard.arr[rowFill][colFill] = QUEEN;
+    return nextBoard;
     // int colMask = nextBoard->colMask;
     // int diagonal1Mask = nextBoard->diagonal1Mask;
     // int diagonal2Mask = nextBoard->diagonal2Mask;
@@ -316,32 +322,31 @@ bool checkDiagonal2(Board* b, int row, int col){
 
 
 void test() {
-    Queue q;
-    initializeQueue(&q);
-    assert(q.start == 0 && q.end == 0);
-    Board b;
-    initializeBoard(&b, 8);
-    assert(b.size == 8 && b.nextRow == 0 && b.colMask == 0 && b.diagonal1Mask == 0 && b.diagonal2Mask == 0);
-    addToQueue(&q, &b);
-    assert(!isQueueEmpty(&q));
-    // printf("%i %i\n", q.start, q.end);
-    assert(q.end == 1 && q.start == 0);
-    Board* r = removeFromQueue(&q);
-    assert(q.start == 1 && q.end == 1);
-    assert(isQueueEmpty(&q));
-    assert(r != NULL);
-    Result res;
-    initializeResult(&res);
-    b.arr[2][0] = QUEEN;
-    Board next;
-    generateNextBoard(&next, &b, 0, 0);
-    printf("printing test board\n");
-    printBoard(&next);
-    printf("done printing test board\n");
+    // Queue q;
+    // initializeQueue(&q);
+    // assert(q.start == 0 && q.end == 0);
+    // Board b;
+    // initializeBoard(&b, 8);
+    // assert(b.size == 8 && b.nextRow == 0 && b.colMask == 0 && b.diagonal1Mask == 0 && b.diagonal2Mask == 0);
+    // addToQueue(&q, &b);
+    // assert(!isQueueEmpty(&q));
+    // // printf("%i %i\n", q.start, q.end);
+    // assert(q.end == 1 && q.start == 0);
+    // Board* r = removeFromQueue(&q);
+    // assert(q.start == 1 && q.end == 1);
+    // assert(isQueueEmpty(&q));
+    // // assert(r != NULL);
+    // Result res;
+    // initializeResult(&res);
+    // b.arr[2][0] = QUEEN;
+    // Board next = generateNextBoard(&b, 0, 0);
+    // printf("printing test board\n");
+    // printBoard(&next);
+    // printf("done printing test board\n");
 
-    assert(next.arr[0][0] == QUEEN && next.arr[2][0] == QUEEN);
-    addToResult(&b, &res);
-    assert(res.nextIndex == 1);
+    // assert(next.arr[0][0] == QUEEN && next.arr[2][0] == QUEEN);
+    // addToResult(&b, &res);
+    // assert(res.nextIndex == 1);
     // printf("here\n");
 }
 

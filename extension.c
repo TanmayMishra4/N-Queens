@@ -330,7 +330,7 @@ bool checkDiagonal2(Board* b, int row, int col){
 }
 
 
-void test(void) {
+void test() {
     assert(sizeof(int) == 4);
     // Queue q;
     // initializeQueue(&q);

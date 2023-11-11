@@ -15,7 +15,9 @@
 typedef struct Board {
     char arr[MAX_BOARD_SIZE][MAX_BOARD_SIZE];
     int size;
+    int numQueens;
     int nextRow;
+    int rowMask;
     int colMask;
     int diagonal1Mask;
     int diagonal2Mask;
@@ -26,6 +28,11 @@ typedef struct Queue {
     int start;
     int end;
 } Queue;
+
+typedef struct Set{
+    int size;
+    Board* arr;
+} Set;
 
 typedef struct Result {
     int arr[MAX_SOLUTION_SIZE][MAX_BOARD_SIZE];

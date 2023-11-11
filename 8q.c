@@ -2,11 +2,11 @@
 
 void addToQueue(Queue* queue, Board board);
 Board removeFromQueue(Queue* queue);
+bool isQueueEmpty(Queue* queue);
 bool isValidFlag(char* flag);
 void parseArgs(int* boardSize, int argc, char** argv);
 void solveBoards(Result* result, int boardSize);
 void initializeBoard(Board* res, int boardSize);
-bool isQueueEmpty(Queue* queue);
 void addToResult(Board* currentBoard, Result* result);
 Board generateNextBoard(Board* board, int row, int col);
 void initializeResult(Result* result);
@@ -17,8 +17,15 @@ void copyBoard(Board* copy, Board* original);
 void displayResult(Result* result, int boardSize);
 void initializeQueue(Queue* queue);
 bool checkColumn(Board* b, int col);
+bool checkRow(Board* b, int row);
 bool checkDiagonal1(Board* b, int row, int col);
 bool checkDiagonal2(Board* b, int row, int col);
+void initializeSet(Set* set);
+void addToSet(Set* set, Board board);
+bool isContained(Set* set, Board* board);
+bool isEqual(Board* first, Board* second);
+bool isSolution(Board* board);
+
 void test(void);
 void printBoard(Board* board);
 void print2Board(Board* a, Board* b);
@@ -86,6 +93,8 @@ Board removeFromQueue(Queue* queue) {
 void initializeBoard(Board* res, int boardSize) {
     res->size = boardSize;
     res->colMask = 0;
+    res->rowMask = 0;
+    res->numQueens = 0;
     res->diagonal1Mask = 0;
     res->diagonal2Mask = 0;
     res->nextRow = 0;
@@ -96,54 +105,124 @@ void initializeBoard(Board* res, int boardSize) {
     }
 }
 
+void initializeSet(Set* set){
+    static Board arr[MAX_QUEUE_SIZE];
+    set->size = 0;
+    set->arr = arr;
+}
+
+bool isEqual(Board* first, Board* second){
+    int size = first->size;
+    int size2 = second->size;
+    if(size != size2) return false;
+
+    for(int row=0;row<size;row++){
+        for(int col=0;col<size;col++){
+            if(first->arr[row][col] != second->arr[row][col]){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool isSolution(Board* board){
+    if(board->numQueens == board->size){
+        return true;
+    }
+    return false;
+}
+
+bool isContained(Set* set, Board* board){
+    int size = set->size;
+    for(int i=0;i<size;i++){
+        if(isEqual(&set->arr[i], board)){
+            return true;
+        }
+    }
+    return false;
+}
+
+void addToSet(Set* set, Board board){
+    // if(isContained(set, &board)){
+    //     return;
+    // }
+    int size = set->size;
+    set->arr[size] = board;
+    set->size++;
+}
+
 void solveBoards(Result* result, int boardSize) {
     Queue queue;
     initializeQueue(&queue);
     Board board;
     initializeBoard(&board, boardSize);
+    Set set;
+    initializeSet(&set);
 
     addToQueue(&queue, board);
+    addToSet(&set, board);
     while (!isQueueEmpty(&queue)) {
         Board currentBoard = removeFromQueue(&queue);
         // printf("value of start, end after removing = %i, %i\n", queue.start, queue.end);
         // printBoard(&currentBoard);
-        
-        int nextRow = currentBoard.nextRow;
-        if (nextRow < boardSize) {
-            for (int col = 0; col < boardSize; col++) {
-                if (isValidPosition(&currentBoard, nextRow, col)) {
-                    // Board* nextBoard;
-                    Board nextBoard = generateNextBoard(&currentBoard, nextRow, col);
-                    // printf("row = %i col = %i\n", nextRow, col);
-                    // print2Board(&currentBoard, &nextBoard);
-                    // arr[end++] = nextBoard;
-                    addToQueue(&queue, nextBoard);
+        for(int row=0;row<boardSize;row++){
+            for(int col=0;col<boardSize;col++){
+                if(currentBoard.arr[row][col] != QUEEN){
+                    if(isValidPosition(&currentBoard, row, col)){
+                        Board next = generateNextBoard(&currentBoard, row, col);
+                        if(!isContained(&set, &next)){
+                            addToSet(&set, next);
+                            if(isSolution(&next)){
+                                addToSet(&set, next);
+                                addToResult(&next, result);
+                            }
+                            else{
+                                addToQueue(&queue, next);
+                            }
+                        }
+                    }
                 }
             }
         }
-        // else if (isSolutionBoard(currentBoard)) {
-        else{
-            // printf("Solution\n");
-            // printBoard(&currentBoard);
-            addToResult(&currentBoard, result);
-            // printf("\n");
-        }
+        // int nextRow = currentBoard.nextRow;
+        // if (nextRow < boardSize) {
+        //     for (int col = 0; col < boardSize; col++) {
+        //         if (isValidPosition(&currentBoard, nextRow, col)) {
+        //             // Board* nextBoard;
+        //             Board nextBoard = generateNextBoard(&currentBoard, nextRow, col);
+        //             // printf("row = %i col = %i\n", nextRow, col);
+        //             // print2Board(&currentBoard, &nextBoard);
+        //             // arr[end++] = nextBoard;
+        //             addToQueue(&queue, nextBoard);
+        //         }
+        //     }
+        // }
+        // // else if (isSolutionBoard(currentBoard)) {
+        // else{
+        //     // printf("Solution\n");
+        //     // printBoard(&currentBoard);
+        //     addToResult(&currentBoard, result);
+        //     // printf("\n");
+        // }
     }
 }
 
 Board generateNextBoard(Board* board, int rowFill, int colFill) {
     Board nextBoard;
     copyBoard(&nextBoard, board);
-    nextBoard.nextRow = rowFill + 1;
+    nextBoard.numQueens = board->numQueens + 1;
     nextBoard.arr[rowFill][colFill] = QUEEN;
     // return nextBoard;
     int colMask = nextBoard.colMask;
+    int rowMask = nextBoard.rowMask;
     int diagonal1Mask = nextBoard.diagonal1Mask;
     int diagonal2Mask = nextBoard.diagonal2Mask;
     int diag1Val = rowFill - colFill + MAX_BOARD_SIZE;
     int diag2Val = rowFill + colFill;
 
     nextBoard.colMask = (colMask | (1 << colFill));
+    nextBoard.rowMask = (rowMask | (1 << rowFill));
     nextBoard.diagonal2Mask = (diagonal2Mask | (1 << diag2Val));
     nextBoard.diagonal1Mask = (diagonal1Mask | (1 << diag1Val));
     return nextBoard;
@@ -196,14 +275,6 @@ void initializeResult(Result* result) {
 void fillValueInResult(Result* res, int it, int val) {
     int nextIndex = res->nextIndex;
     res->arr[nextIndex][it] = val;
-
-    // if (val <= 9) {
-    //     res->arr[nextIndex][*it++] = '0' + val;
-    // }
-    // else if (val == 10) {
-    //     res->arr[nextIndex][*it++] = '0' + 1;
-    //     res->arr[nextIndex][*it++] = '0' + 0;
-    // }
 }
 
 bool isSolutionBoard(Board* board) {
@@ -220,30 +291,23 @@ bool isSolutionBoard(Board* board) {
 }
 // optimize to use bitmasks
 bool isValidPosition(Board* currentBoard, int row, int col) {
-//     int colMask = currentBoard->colMask;
-//     int diagonal1Mask = currentBoard->diagonal1Mask;
-//     int diagonal2Mask = currentBoard->diagonal2Mask;
-
-//     int diag1Val = row + col;
-//     int diag2Val = row - col + MAX_BOARD_SIZE;
-//     // checking if col already has queen
-//     if ((colMask & (1 << col)) > 0) {
-//         return false;
-//     }
-//     if ((diagonal1Mask & (1 << diag1Val)) > 0) {
-//         return false;
-//     }
-//     if ((diagonal2Mask & (1 << diag2Val)) > 0) {
-//         return false;
-//     }
-//     return true;
-    bool columns = checkColumn(currentBoard, col);
-    bool diagonal1 = checkDiagonal1(currentBoard, row, col);
-    bool diagonal2 = checkDiagonal2(currentBoard, row, col);
-    if(columns && diagonal1 && diagonal2){
-        return true;
+    bool isValidRow = checkRow(currentBoard, row);
+    if(!isValidRow){
+        return false;
     }
-    return false;
+    bool isValidCol = checkColumn(currentBoard, col);
+    if(!isValidCol){
+        return false;
+    }
+    bool isValidDiag1 = checkDiagonal1(currentBoard, row, col);
+    if(!isValidDiag1){
+        return false;
+    }
+    bool isValidDiag2 = checkDiagonal2(currentBoard, row, col);
+    if(!isValidDiag2){
+        return false;
+    }
+    return true;
 }
 
 void initializeQueue(Queue* queue) {
@@ -254,80 +318,75 @@ void initializeQueue(Queue* queue) {
 }
 
 bool checkColumn(Board* b, int col){
-    // int res = 0;
-    // for(int row=0;row<b->size;row++){
-    //     if(res > 0){
-    //         return false;
-    //     }
-    //     if(b->arr[row][col] == QUEEN){
-    //         res++;
-    //     }
-    // }
-    // return res == 0;
-    int colMask = b->colMask;
-    return ((colMask & (1 << col)) == 0);
+    for(int row=0;row<b->size;row++){
+        if(b->arr[row][col] == QUEEN){
+            return false;
+        }
+    }
+    return true;
+    // int colMask = b->colMask;
+    // return ((colMask & (1 << col)) == 0);
+}
+
+bool checkRow(Board* b, int row){
+    for(int col=0;col<b->size;col++){
+        if(b->arr[row][col] == QUEEN){
+            return false;
+        }
+    }
+    return true;
+    // int rowMask = b->rowMask;
+    // return ((rowMask & (1 << row)) == 0);
 }
 
 bool checkDiagonal1(Board* b, int row, int col){
-    // int size = b->size;
-    // int res = 0;
-    // int r = row, c = col;
-    // while(r < size && c < size){
-    //     if(res > 0) return false;
-    //     if(b->arr[r][c] == QUEEN){
-    //         res++;
-    //     }
-    //     r++;
-    //     c++;
-    // }
-    // r = row-1;
-    // c = col-1;
-    // while(r >= 0 && c >= 0){
-    //     if(res > 0) return false;
-    //     if(b->arr[r][c] == QUEEN){
-    //         res++;
-    //     }
-    //     r--;
-    //     c--;
-    // }
-    // return res == 0;
-    int diagonal1Mask = b->diagonal1Mask;
-    int diag1Val = row - col + MAX_BOARD_SIZE;
-    if ((diagonal1Mask & (1 << diag1Val)) > 0) {
-        return false;
+    int size = b->size;
+    int r = row, c = col;
+    while(r < size && c < size){
+        if(b->arr[r][c] == QUEEN){
+            return false;
+        }
+        r++;
+        c++;
+    }
+    r = row-1;
+    c = col-1;
+    while(r >= 0 && c >= 0){
+        if(b->arr[r][c] == QUEEN){
+            return false;
+        }
+        r--;
+        c--;
     }
     return true;
+    // int diag1Mask = b->diagonal1Mask;
+    // int diag1Val = row - col + MAX_BOARD_SIZE;
+    // return ((diag1Mask & (1 << diag1Val)) == 0);
 }
 
 bool checkDiagonal2(Board* b, int row, int col){
-    // int size = b->size;
-    // int res = 0;
-    // int r = row, c = col;
-    // while(r >= 0 && c < size){
-    //     if(res > 0) return false;
-    //     if(b->arr[r][c] == QUEEN){
-    //         res++;
-    //     }
-    //     r--;
-    //     c++;
-    // }
-    // r = row+1;
-    // c = col-1;
-    // while(r < size && c >= 0){
-    //     if(res > 0) return false;
-    //     if(b->arr[r][c] == QUEEN){
-    //         res++;
-    //     }
-    //     r++;
-    //     c--;
-    // }
-    // return res == 0;
-    int diag2Val = row + col;
-    int diagonal2Mask = b->diagonal2Mask;
-    if ((diagonal2Mask & (1 << diag2Val)) > 0) {
-        return false;
+    int size = b->size;
+    int r = row, c = col;
+    while(r >= 0 && c < size){
+        if(b->arr[r][c] == QUEEN){
+            return false;
+        }
+        r--;
+        c++;
+    }
+    r = row+1;
+    c = col-1;
+    while(r < size && c >= 0){
+        if(b->arr[r][c] == QUEEN){
+            return false;
+        }
+        r++;
+        c--;
     }
     return true;
+    // int diag2Mask = b->diagonal2Mask;
+    // int diag2Val = row + col;
+    // return ((diag2Mask & (1 << diag2Val)) == 0);
 }
 
 
@@ -336,8 +395,12 @@ void test(void) {
     // Queue q;
     // initializeQueue(&q);
     // assert(q.start == 0 && q.end == 0);
-    // Board b;
-    // initializeBoard(&b, 8);
+    Board b;
+    initializeBoard(&b, 8);
+    Board next = generateNextBoard(&b, 0, 0);
+    assert(isValidPosition(&next, 3, 2));
+    assert(!isValidPosition(&next, 0, 1));
+    assert(next.numQueens == 1);
     // assert(b.size == 8 && b.nextRow == 0 && b.colMask == 0 && b.diagonal1Mask == 0 && b.diagonal2Mask == 0);
     // addToQueue(&q, &b);
     // assert(!isQueueEmpty(&q));

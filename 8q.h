@@ -22,7 +22,7 @@ typedef struct Board {
 } Board;
 
 typedef struct Queue {
-    Board arr[MAX_QUEUE_SIZE];
+    Board* arr;
     int start;
     int end;
 } Queue;

@@ -150,6 +150,8 @@ bool isContained(Set* set, Board* board){
     // return false;
     int size = set->size;
     for(int i=size-1;i>=0;i--){
+        int numQueens = set->arr[i].numQueens;
+        if(numQueens < board->numQueens) return false;
         if(isEqual(&set->arr[i], board)){
             return true;
         }

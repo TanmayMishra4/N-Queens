@@ -8,12 +8,12 @@
 #define MAX_BOARD_SIZE 10
 #define MAX_SOLUTION_SIZE 800
 #define VALID_FLAG "-verbose"
-#define EMPTY '.'
-#define QUEEN 'Q'
+#define EMPTY '0'
+#define QUEEN '1'
 #define NULLCHAR '\0'
 
 typedef struct Board {
-    char arr[MAX_BOARD_SIZE][MAX_BOARD_SIZE];
+    int arr[MAX_BOARD_SIZE][MAX_BOARD_SIZE];
     int size;
     int nextRow;
     int colMask;
@@ -21,10 +21,15 @@ typedef struct Board {
     int diagonal2Mask;
 } Board;
 
+typedef struct Node {
+    Board b;
+    struct Node* next;
+} Node;
+
 typedef struct Queue {
-    Board arr[MAX_QUEUE_SIZE];
-    int start;
-    int end;
+    Node* start;
+    int size;
+    Node* end;
 } Queue;
 
 typedef struct Result {

@@ -1,12 +1,12 @@
-#include "8q.h"
+#include "extension.h"
 
-void addToQueue(Board arr[MAX_QUEUE_SIZE], Board board, int* pos);
-Board removeFromQueue(Board arr[MAX_QUEUE_SIZE], int* start);
+void addToQueue(Queue* queue, Board board);
+void removeFromQueue(Queue* queue, Board* board);
 bool isValidFlag(char* flag);
 void parseArgs(int* boardSize, int argc, char** argv);
 void solveBoards(Result* result, int boardSize);
 void initializeBoard(Board* res, int boardSize);
-bool isQueueEmpty(int start, int end);
+bool isQueueEmpty(Queue* queue);
 void addToResult(Board* currentBoard, Result* result);
 Board generateNextBoard(Board* board, int row, int col);
 void initializeResult(Result* result);
@@ -15,10 +15,11 @@ bool isSolutionBoard(Board* board);
 bool isValidPosition(Board* currentBoard, int row, int col);
 void copyBoard(Board* copy, Board* original);
 void displayResult(Result* result, int boardSize);
-void initializeQueue(Queue* queue);
+Queue* initializeQueue(void);
 bool checkColumn(Board* b, int col);
 bool checkDiagonal1(Board* b, int row, int col);
 bool checkDiagonal2(Board* b, int row, int col);
+void freeQueue(Queue* queue);
 void test(void);
 void printBoard(Board* board);
 void print2Board(Board* a, Board* b);
@@ -31,12 +32,10 @@ int main(int argc, char** argv) {
     parseArgs(&boardSize, argc, argv);
 
     solveBoards(&result, boardSize);
-    if (argc == 2) {
-        printf("%i solutions\n", result.nextIndex);
-    }
-    else {
+    if(argc == 3) {
         displayResult(&result, boardSize);
     }
+    printf("%i solutions\n", result.nextIndex);
     return 0;
 }
 
@@ -67,19 +66,60 @@ void parseArgs(int* boardSize, int argc, char** argv) {
     }
 }
 
-bool isQueueEmpty(int start, int end) {
-    return end == start;
+Queue* initializeQueue(void) {
+    Queue* queue = (Queue*)calloc(1, sizeof(Queue));
+    queue->start = 0;
+    queue->end = 0;
+    queue->size = 0;
+    return queue;
 }
 
-void addToQueue(Board arr[MAX_QUEUE_SIZE], Board board, int* pos) {
-    arr[*pos] = board;
-    *pos = *pos + 1;
+void freeQueue(Queue* queue){
+    if(queue != NULL){
+        Node* cur = queue->start;
+        while(cur != NULL){
+            Node* next = cur->next;
+            free(cur);
+            cur = next;
+        }
+        free(queue);
+    }
 }
 
-Board removeFromQueue(Board arr[MAX_QUEUE_SIZE], int* start) {
-    Board next = arr[*start];
-    *start = *start + 1;
-    return next;
+bool isQueueEmpty(Queue* queue) {
+    return (queue->size == 0);
+}
+
+void addToQueue(Queue* queue, Board board) {
+    Node* temp;
+    temp = (Node*)calloc(1, sizeof(Node));
+    temp->b = board;
+    temp->next = NULL;
+    if(queue->size == 0){
+        queue->end = temp;
+        queue->start = temp;
+    }
+    else{
+        queue->end->next = temp;
+        queue->end = temp;
+    }
+    queue->size = queue->size+1;
+}
+
+void removeFromQueue(Queue* queue, Board* board) {
+    // Node* temp;
+    // temp = queue->start;
+    // *board = temp->b;
+    // // free(queue->start);
+    // queue->start = queue->start->next;
+    // queue->size = queue->size-1;
+    // free(temp);
+    // return;
+    Node* f = queue->start->next;
+    *board = queue->start->b;
+    free(queue->start);
+    queue->start = f;
+    queue->size = queue->size-1;
 }
 
 void initializeBoard(Board* res, int boardSize) {
@@ -96,16 +136,16 @@ void initializeBoard(Board* res, int boardSize) {
 }
 
 void solveBoards(Result* result, int boardSize) {
-    static Board arr[MAX_QUEUE_SIZE];
-    int start = 0, end = 0;
+    Queue* queue = initializeQueue();
     Board board;
     initializeBoard(&board, boardSize);
 
     // arr[end++] = board;
-    addToQueue(arr, board, &end);
-    while (!isQueueEmpty(start, end)) {
+    addToQueue(queue, board);
+    while (!isQueueEmpty(queue)) {
         // Board currentBoard = arr[start++];
-        Board currentBoard = removeFromQueue(arr, &start);
+        Board currentBoard;
+        removeFromQueue(queue, &currentBoard);
         // printf("value of start, end after removing = %i, %i\n", queue.start, queue.end);
         // printBoard(&currentBoard);
         
@@ -118,7 +158,7 @@ void solveBoards(Result* result, int boardSize) {
                     // printf("row = %i col = %i\n", nextRow, col);
                     // print2Board(&currentBoard, &nextBoard);
                     // arr[end++] = nextBoard;
-                    addToQueue(arr, nextBoard, &end);
+                    addToQueue(queue, nextBoard);
                 }
             }
         }
@@ -130,6 +170,7 @@ void solveBoards(Result* result, int boardSize) {
             // printf("\n");
         }
     }
+    freeQueue(queue);
 }
 
 Board generateNextBoard(Board* board, int rowFill, int colFill) {
@@ -245,11 +286,6 @@ bool isValidPosition(Board* currentBoard, int row, int col) {
         return true;
     }
     return false;
-}
-
-void initializeQueue(Queue* queue) {
-    queue->start = 0;
-    queue->end = 0;
 }
 
 bool checkColumn(Board* b, int col){

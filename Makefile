@@ -23,6 +23,12 @@ CC := clang
 8q_san: 8q.c 8q.h
 	$(CC) 8q.c $(SANITIZE) -o 8q_san
 
+extension: extension.c extension.h
+	$(CC) extension.c $(OPTIM) -o extension
+
+extension_san: extension.c extension.h
+	$(CC) extension.c $(SANITIZE) -o extension_san
+
 all: 8q 8q_san
 
 run:

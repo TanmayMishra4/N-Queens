@@ -105,7 +105,6 @@ Board removeFromQueue(Queue* queue) {
 void initializeBoard(Board* res, int boardSize) {
     res->size = boardSize;
     res->colMask = 0;
-    res->rowMask = 0;
     res->numQueens = 0;
     res->diagonal1Mask = 0;
     res->diagonal2Mask = 0;
@@ -151,7 +150,9 @@ bool isContained(Set* set, Board* board){
     int size = set->size;
     for(int i=size-1;i>=0;i--){
         int numQueens = set->arr[i].numQueens;
-        if(numQueens < board->numQueens) return false;
+        if(numQueens < board->numQueens){
+            return false;
+        }
         if(isEqual(&set->arr[i], board)){
             return true;
         }
@@ -193,7 +194,7 @@ void solveBoards(Result* result, int boardSize) {
                         if(!isContained(&set, &next)){
                             addToSet(&set, next);
                             if(isSolution(&next)){
-                                addToSet(&set, next);
+                                // addToSet(&set, next);
                                 addToResult(&next, result);
                             }
                             else{
@@ -223,14 +224,12 @@ Board generateNextBoard(Board* board, int rowFill, int colFill) {
     fillVal(&nextBoard, rowFill, colFill, QUEEN);
 
     int colMask = nextBoard.colMask;
-    int rowMask = nextBoard.rowMask;
     int diagonal1Mask = nextBoard.diagonal1Mask;
     int diagonal2Mask = nextBoard.diagonal2Mask;
     int diag1Val = rowFill - colFill + MAX_BOARD_SIZE;
     int diag2Val = rowFill + colFill;
 
     nextBoard.colMask = (colMask | (1 << colFill));
-    nextBoard.rowMask = (rowMask | (1 << rowFill));
     nextBoard.diagonal2Mask = (diagonal2Mask | (1 << diag2Val));
     nextBoard.diagonal1Mask = (diagonal1Mask | (1 << diag1Val));
     return nextBoard;
@@ -322,14 +321,16 @@ bool checkColumn(Board* b, int col){
 }
 
 bool checkRow(Board* b, int row){
-    for(int col=0;col<b->size;col++){
-        if(isQueen(b, row, col)){
-            return false;
-        }
+    // for(int col=0;col<b->size;col++){
+    //     if(isQueen(b, row, col)){
+    //         return false;
+    //     }
+    // }
+    // return true;
+    if(b->arr[row] > 0){
+        return false;
     }
     return true;
-    // int rowMask = b->rowMask;
-    // return ((rowMask & (1 << row)) == 0);
 }
 
 bool checkDiagonal1(Board* b, int row, int col){
@@ -400,8 +401,6 @@ void test(void) {
     Board next = generateNextBoard(&b, 0, 0);
     assert(isValidPosition(&next, 3, 2));
     assert(!isValidPosition(&next, 0, 1));
-    assert(b.rowMask == 0);
-    assert(next.rowMask ==  1);
     assert(!checkRow(&next, 0));
     assert(next.numQueens == 1);
     // assert(b.size == 8 && b.nextRow == 0 && b.colMask == 0 && b.diagonal1Mask == 0 && b.diagonal2Mask == 0);

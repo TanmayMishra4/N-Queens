@@ -18,7 +18,6 @@ typedef struct Board {
     int size;
     int numQueens;
     int nextRow;
-    int rowMask;
     int colMask;
     int diagonal1Mask;
     int diagonal2Mask;

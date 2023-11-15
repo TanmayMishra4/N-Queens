@@ -30,15 +30,39 @@ void printUsage(void);
 void printWrongArgs(void);
 void printSizeOutOfBounds(void);
 void printWrongFlag(void);
-void checkNextBoards(Board* currentBoard, Result* result, int row, int col, Set* set, Queue* queue);
+void checkNextBoards(Board* currentBoard, Result* result, 
+                int row, int col, Set* set, Queue* queue);
 
 void test(void);
 void testValidFlag(void);
+void testInitializeQueue(void);
+void testInitializeBoard(void);
+void testCopyBoard(void);
+void testIsEqual(void);
+void testFillVal(void);
+void testIsQueen(void);
+void testIsQueueEmpty(void);
+void testAddAndRemove(void);
+void testInitializeSet(void);
+void testAddToSet(void);
+void testIsContained(void);
+void testCheckRow(void);
+void testCheckCol(void);
+void testCheckDiagonal1(void);
+void testCheckDiagonal2(void);
+void testGenerateNextBoard(void);
+void testIsSolution(void);
+void testIsValidPosition(void);
+void testInitializeResult(void);
+void testAddToResult(void);
+void testFillValInResult(void);
+void testSolveBoards(void);
+void testCheckNextBoards(void);
 
 int main(int argc, char** argv) {
+    test();
     int boardSize = 0;
     Result result;
-    test();
     initializeResult(&result);
     parseArgs(&boardSize, argc, argv);
 
@@ -115,6 +139,9 @@ Board removeFromQueue(Queue* queue) {
 }
 
 void initializeBoard(Board* res, int boardSize) {
+    if(res == NULL){
+        return;
+    }
     res->size = boardSize;
     res->colMask = 0;
     res->numQueens = 0;
@@ -127,6 +154,9 @@ void initializeBoard(Board* res, int boardSize) {
 }
 
 void initializeSet(Set* set){
+    if(set == NULL){
+        return;
+    }
     static Board arr[MAX_QUEUE_SIZE];
     set->size = 0;
     set->arr = arr;
@@ -172,7 +202,8 @@ void addToSet(Set* set, Board board){
     set->size++;
 }
 
-void checkNextBoards(Board* currentBoard, Result* result, int row, int col, Set* set, Queue* queue){
+void checkNextBoards(Board* currentBoard, Result* result, int row, 
+                    int col, Set* set, Queue* queue){
     if(!isQueen(currentBoard, row, col)){
         if(isValidPosition(currentBoard, row, col)){
             Board next = generateNextBoard(currentBoard, row, col);
@@ -240,6 +271,7 @@ Board generateNextBoard(Board* board, int rowFill, int colFill) {
 
 void copyBoard(Board* copy, Board* original) {
     copy->size = original->size;
+    copy->numQueens = original->numQueens;
     copy->colMask = original->colMask;
     copy->diagonal1Mask = original->diagonal1Mask;
     copy->diagonal2Mask = original->diagonal2Mask;
@@ -271,6 +303,9 @@ void addToResult(Board* currentBoard, Result* result) {
 }
 
 void initializeResult(Result* result) {
+    if(result == NULL){
+        return;
+    }
     result->nextIndex = 0;
     for (int row = 0; row < MAX_SOLUTION_SIZE; row++) {
         for (int col = 0; col < MAX_BOARD_SIZE; col++) {
@@ -305,6 +340,9 @@ bool isValidPosition(Board* currentBoard, int row, int col) {
 }
 
 void initializeQueue(Queue* queue) {
+    if(queue == NULL){
+        return;
+    }
     static Board arr[MAX_QUEUE_SIZE];
     queue->arr = arr;
     queue->start = 0;
@@ -342,41 +380,32 @@ bool isQueen(Board* board, int row, int col){
     return false;
 }
 
+// TESTING FUNCTIONS
 
 void test(void) {
     testValidFlag();
-    assert(sizeof(int) == 4);
-    // Queue q;
-    // initializeQueue(&q);
-    // assert(q.start == 0 && q.end == 0);
-    Board b;
-    initializeBoard(&b, 8);
-    Board next = generateNextBoard(&b, 0, 0);
-    assert(isValidPosition(&next, 3, 2));
-    assert(!isValidPosition(&next, 0, 1));
-    assert(!checkRow(&next, 0));
-    assert(next.numQueens == 1);
-    // assert(b.size == 8 && b.nextRow == 0 && b.colMask == 0 && b.diagonal1Mask == 0 && b.diagonal2Mask == 0);
-    // addToQueue(&q, &b);
-    // assert(!isQueueEmpty(&q));
-    // // printf("%i %i\n", q.start, q.end);
-    // assert(q.end == 1 && q.start == 0);
-    // Board* r = removeFromQueue(&q);
-    // assert(q.start == 1 && q.end == 1);
-    // assert(isQueueEmpty(&q));
-    // // assert(r != NULL);
-    // Result res;
-    // initializeResult(&res);
-    // b.arr[2][0] = QUEEN;
-    // Board next = generateNextBoard(&b, 0, 0);
-    // printf("printing test board\n");
-    // printBoard(&next);
-    // printf("done printing test board\n");
-
-    // assert(next.arr[0][0] == QUEEN && next.arr[2][0] == QUEEN);
-    // addToResult(&b, &res);
-    // assert(res.nextIndex == 1);
-    // printf("here\n");
+    testInitializeQueue();
+    testInitializeBoard();
+    testIsEqual();
+    testIsQueen();
+    testFillVal();
+    testCopyBoard();
+    testIsQueueEmpty();
+    testAddAndRemove();
+    testInitializeSet();
+    testAddToSet();
+    testIsContained();
+    testGenerateNextBoard();
+    testCheckRow();
+    testCheckCol();
+    testCheckDiagonal1();
+    testCheckDiagonal2();
+    testIsSolution();
+    testIsValidPosition();
+    testInitializeResult();
+    testAddToResult();
+    testFillValInResult();
+    testSolveBoards();
 }
 
 void testValidFlag(void){
@@ -385,3 +414,281 @@ void testValidFlag(void){
     assert(!isValidFlag(" "));
     assert(!isValidFlag("6"));
 }
+
+void testInitializeQueue(void){
+    Queue queue;
+    initializeQueue(&queue);
+    assert(queue.end == 0 && queue.start == 0);
+    assert(queue.arr != NULL);
+
+    Queue* q = NULL;
+    initializeQueue(q);
+    assert(q == NULL);
+}
+
+void testIsQueueEmpty(void){
+    Queue queue;
+    Board a;
+    initializeBoard(&a, 3);
+    initializeQueue(&queue);
+    assert(isQueueEmpty(&queue));
+    addToQueue(&queue, a);
+    assert(!isQueueEmpty(&queue));
+    removeFromQueue(&queue);
+    assert(isQueueEmpty(&queue));
+}
+
+void testAddAndRemove(void){
+    Queue q;
+    initializeQueue(&q);
+    Board a;
+    initializeBoard(&a, 3);
+    fillVal(&a, 1, 2, QUEEN);
+    addToQueue(&q, a);
+    Board c = removeFromQueue(&q);
+    assert(isEqual(&a, &c));
+
+    initializeBoard(&a, 4);
+    fillVal(&a, 0, 2, QUEEN);
+    addToQueue(&q, a);
+    c = removeFromQueue(&q);
+    assert(isEqual(&a, &c));
+}
+
+void testInitializeBoard(void){
+    Board b;
+    int size = 3;
+    initializeBoard(&b, size);
+    assert(b.colMask == 0 && b.numQueens == 0);
+    assert(b.diagonal1Mask == 0 && b.diagonal2Mask == 0);
+    assert(b.size == 3);
+    for(int row=0;row<size;row++){
+        for(int col=0;col<size;col++){
+            assert(b.arr[row] == EMPTY);
+        }
+    }
+    Board* a = NULL;
+    initializeBoard(a, 3);
+    assert(a == NULL);
+}
+
+void testFillVal(void){
+    Board a;
+    initializeBoard(&a, 4);
+    fillVal(&a, 1, 3, QUEEN);
+    assert(isQueen(&a, 1, 3));
+    assert(!isQueen(&a, 3, 1));
+}
+
+void testIsEqual(void){
+    Board a;
+    initializeBoard(&a, 5);
+    Board b;
+    initializeBoard(&b, 4);
+    assert(!isEqual(&a, &b));
+    initializeBoard(&b, 5);
+    a.arr[3] = QUEEN;
+    b.arr[3] = QUEEN;
+    assert(isEqual(&a, &b));
+}
+
+void testCopyBoard(void){
+    Board a;
+    initializeBoard(&a, 3);
+    Board b;
+    copyBoard(&b, &a);
+    assert(isEqual(&b, &a));
+    assert(b.colMask == a.colMask);
+    assert(b.diagonal1Mask == a.diagonal1Mask);
+    assert(b.diagonal2Mask == a.diagonal1Mask);
+    assert(b.numQueens == a.numQueens);
+}
+
+void testIsQueen(void){
+    Board a;
+    initializeBoard(&a, 4);
+    fillVal(&a, 2, 3, QUEEN);
+    fillVal(&a, 0, 0, QUEEN);
+    assert(isQueen(&a, 2, 3));
+    assert(isQueen(&a, 0, 0));
+    assert(!isQueen(&a, 3, 2));
+}
+
+void testInitializeSet(void){
+    Set s;
+    initializeSet(&s);
+    assert(s.size == 0);
+    assert(s.arr != NULL);
+    Set* st = NULL;
+    initializeSet(st);
+    assert(st == NULL);
+}
+
+void testAddToSet(void){
+    Set s;
+    initializeSet(&s);
+    Board a;
+    initializeBoard(&a, 4);
+    fillVal(&a, 1, 2, QUEEN);
+    addToSet(&s, a);
+    assert(s.size == 1);
+    assert(isEqual(&(s.arr[s.size-1]), &a));
+}
+
+void testIsContained(void){
+    Set s;
+    initializeSet(&s);
+    Board a;
+    initializeBoard(&a, 4);
+    Board b;
+    copyBoard(&b, &a);
+    addToSet(&s, a);
+    assert(isContained(&s, &b));
+    fillVal(&b, 0, 0, QUEEN);
+    assert(!isContained(&s, &b));
+}
+
+void testCheckRow(void){
+    Board a;
+    initializeBoard(&a, 4);
+    fillVal(&a, 1, 2, QUEEN);
+    assert(!checkRow(&a, 1));
+    assert(checkRow(&a, 0));
+    fillVal(&a, 3, 0, QUEEN);
+    assert(!checkRow(&a, 3));
+    assert(checkRow(&a, 2));
+}
+
+void testCheckCol(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board next = generateNextBoard(&a, 1, 2);
+    assert(!checkColumn(&next, 2));
+    assert(checkColumn(&next, 0));
+    next = generateNextBoard(&next, 3, 0);
+    assert(!checkColumn(&next, 0));
+    assert(checkColumn(&next, 3));
+}
+
+void testCheckDiagonal1(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board next = generateNextBoard(&a, 1, 2);
+    assert(!checkDiagonal1(&next, 0, 1));
+    assert(checkDiagonal1(&next, 0, 0));
+    next = generateNextBoard(&next, 3, 1);
+    assert(!checkDiagonal1(&next, 2, 0));
+    assert(checkDiagonal1(&next, 0, 0));
+}
+
+void testCheckDiagonal2(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board next = generateNextBoard(&a, 1, 2);
+    assert(!checkDiagonal2(&next, 0, 3));
+    assert(checkDiagonal2(&next, 0, 0));
+    next = generateNextBoard(&next, 2, 0);
+    assert(!checkDiagonal2(&next, 0, 2));
+    assert(checkDiagonal2(&next, 1, 3));
+}
+
+void testGenerateNextBoard(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board b = generateNextBoard(&a, 0, 0);
+    assert(isQueen(&b, 0, 0));
+    assert(b.numQueens == 1);
+    assert(b.colMask == 1);
+    assert(b.diagonal2Mask == 1);
+
+    b = generateNextBoard(&b, 2, 2);
+    assert(isQueen(&b, 2, 2));
+    assert(b.numQueens == 2);
+    assert(b.colMask == 5);
+    assert(b.diagonal2Mask == 17);
+}
+
+void testIsValidPosition(void){
+    Board a;
+    initializeBoard(&a, 3);
+    assert(isValidPosition(&a, 0, 0));
+    assert(isValidPosition(&a, 1, 2));
+    a = generateNextBoard(&a, 0, 0);
+    assert(isValidPosition(&a, 1, 2));
+    assert(!isValidPosition(&a,  1, 0));
+    assert(!isValidPosition(&a,  2, 0));
+}
+
+void testIsSolution(void){
+    Board a;
+    initializeBoard(&a, 4);
+    assert(!isSolution(&a));
+    a = generateNextBoard(&a, 0, 1);
+    assert(!isSolution(&a));
+    a = generateNextBoard(&a, 1, 3);
+    a = generateNextBoard(&a, 2, 0);
+    assert(!isSolution(&a));
+    a = generateNextBoard(&a, 3, 2);
+    assert(isSolution(&a));
+}
+
+void testInitializeResult(void){
+    Result res;
+    initializeResult(&res);
+    assert(res.nextIndex == 0);
+    assert(res.arr != NULL);
+    Result* r = NULL;
+    initializeResult(r);
+    assert(r == NULL);
+}
+
+void testAddToResult(void){
+    Result r;
+    initializeResult(&r);
+    Board a;
+    initializeBoard(&a, 3);
+    a = generateNextBoard(&a, 0, 0);
+    addToResult(&a, &r);
+    assert(r.nextIndex == 1);
+    assert(r.arr[0][0] == 1);
+    a = generateNextBoard(&a, 1, 2);
+    addToResult(&a, &r);
+    assert(r.nextIndex == 2);
+    assert(r.arr[1][1] == 3);
+}
+
+void testFillValInResult(void){
+    Result r;
+    initializeResult(&r);
+    fillValueInResult(&r, 0, 1);
+    assert(r.arr[0][0] == 1);
+    fillValueInResult(&r, 1, 3);
+    assert(r.arr[0][1] == 3);
+}
+
+void testSolveBoards(void){
+    Result r;
+    initializeResult(&r);
+    solveBoards(&r, 3);
+    assert(r.nextIndex == 0);
+    initializeResult(&r);
+    solveBoards(&r, 4);
+    assert(r.nextIndex == 2);
+    assert(r.arr[0][0] == 2);
+    assert(r.arr[0][1] == 4);
+    assert(r.arr[0][2] == 1);
+    assert(r.arr[1][2] == 4);
+
+    initializeResult(&r);
+    solveBoards(&r, 5);
+    assert(r.nextIndex == 10);
+
+    initializeResult(&r);
+    solveBoards(&r, 1);
+    assert(r.nextIndex == 1);
+}
+
+void testCheckNextBoards(void){
+
+}
+

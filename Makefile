@@ -1,5 +1,5 @@
 # General flags we'll always use (-Werror to prevent code generation if *any* errors)
-GENFLAGS := -Wall -Wextra -pedantic -std=c99 -Wvla -Wfloat-equal -Werror
+GENFLAGS := -Wall -Wextra -pedantic -std=c99 -Wvla -Wfloat-equal -Werror -lm
 
 # -O3 means optimise compiled code for execution speed
 OPTIM := $(GENFLAGS) -O3
@@ -14,6 +14,10 @@ OPTIM := $(GENFLAGS) -O3
 # Creates a much slower executable but filled with run-time error/bounds checking etc.
 SANITIZE := $(GENFLAGS) -g3 -fsanitize=address -fsanitize=undefined
 
+LIBS =  -lm `pkg-config sdl2 --libs`
+DEVFLAGS=$(GENFLAGS) -fsanitize=address -fsanitize=undefined -g3
+PRODFLAGS=$(BASEFLAGS) -O1 -Werror `pkg-config sdl2 --cflags`
+
 # In the labs you'll probably use clang, but make sure to try gcc too
 CC := clang
 
@@ -24,12 +28,13 @@ CC := clang
 	$(CC) 8q.c $(SANITIZE) -o 8q_san
 
 extension: extension.c extension.h
-	$(CC) extension.c $(OPTIM) -o extension
+	$(CC) extension.c neillsdl2.c -o extension $(PRODFLAGS) $(LIBS)
 
-extension_san: extension.c extension.h
-	$(CC) extension.c $(SANITIZE) -o extension_san
 
-all: 8q 8q_san
+demo_neillsdl2: demo_neillsdl2.c neillsdl2.c neillsdl2.h
+	$(CC) demo_neillsdl2.c neillsdl2.c -o demo_neillsdl2 $(PRODFLAGS) $(LIBS)
+
+all: 8q 8q_san extension
 
 run:
 	./8q_san 4

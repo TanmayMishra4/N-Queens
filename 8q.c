@@ -26,11 +26,14 @@ void addToSet(Set* set, Board board);
 bool isContained(Set* set, Board* board);
 bool isEqual(Board* first, Board* second);
 bool isSolution(Board* board);
-int generateHash(Board* board);
+void printUsage(void);
+void printWrongArgs(void);
+void printSizeOutOfBounds(void);
+void printWrongFlag(void);
+void checkNextBoards(Board* currentBoard, Result* result, int row, int col, Set* set, Queue* queue);
 
 void test(void);
-void printBoard(Board* board);
-void print2Board(Board* a, Board* b);
+void testValidFlag(void);
 
 int main(int argc, char** argv) {
     int boardSize = 0;
@@ -52,20 +55,31 @@ bool isValidFlag(char* flag) {
     return (strcmp(flag, VALID_FLAG) == 0);
 }
 
-int generateHash(Board* board){
-    int primes[MAX_BOARD_SIZE] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29};
-    long hash = 0;
-    for(int row=0;row<board->size;row++){
-        hash += (long)primes[row] * (long)board->arr[row];
-    }
-    return hash%BIG_PRIME;
+void printUsage(void){
+    fprintf(stderr, "usage : ./8q [-verbose](optional) [size of board]\n");
+}
+void printWrongArgs(void){
+    fprintf(stderr, "Wrong number of args passed\n");
+    printUsage();
+    exit(EXIT_FAILURE);
+}
+void printSizeOutOfBounds(void){
+    fprintf(stderr, 
+    "Invalid Board Size, Board size needs to be between 1 and 10 inclusive\n");
+    printUsage();
+    exit(EXIT_FAILURE);
+}
+void printWrongFlag(void){
+    fprintf(stderr, "Wrong flag used, only -verbose allowed\n");
+    printUsage();
+    exit(EXIT_FAILURE);
+    
 }
 
 void parseArgs(int* boardSize, int argc, char** argv) {
     char* flag = NULL;
     if (argc != 2 && argc != 3) {
-        fprintf(stderr, "Wrong number of args passed, usage : ./8q [-verbose](optional) [size of board]\n");
-        exit(EXIT_FAILURE);
+        printWrongArgs();
     }
     if (argc == 2) {
         *boardSize = atoi(argv[1]);
@@ -75,13 +89,11 @@ void parseArgs(int* boardSize, int argc, char** argv) {
         flag = argv[1];
 
         if (!isValidFlag(flag)) {
-            fprintf(stderr, "Wrong flag used, only -verbose allowed\n");
-            exit(EXIT_FAILURE);
+            printWrongFlag();
         }
     }
     if (*boardSize > 10 || *boardSize <= 0) {
-        fprintf(stderr, "Invalid Board Size, Board size needs to be between 1 and 10 inclusive\n");
-        exit(EXIT_FAILURE);
+        printSizeOutOfBounds();
     }
 }
 
@@ -141,12 +153,6 @@ bool isSolution(Board* board){
 }
 
 bool isContained(Set* set, Board* board){
-    // printf("isContained\n");
-    // int hash = generateHash(board);
-    // if(isEqual(&(set->arr[hash]), board)){
-    //     return true;
-    // }
-    // return false;
     int size = set->size;
     for(int i=size-1;i>=0;i--){
         int numQueens = set->arr[i].numQueens;
@@ -161,16 +167,27 @@ bool isContained(Set* set, Board* board){
 }
 
 void addToSet(Set* set, Board board){
-    // if(isContained(set, &board)){
-    //     return;
-    // }
-    // printf("addToSet\n");
-    // int hash = generateHash(&board);
     int size = set->size;
     set->arr[size] = board;
     set->size++;
-    // set->arr[hash] = board;
-    // set->size++;
+}
+
+void checkNextBoards(Board* currentBoard, Result* result, int row, int col, Set* set, Queue* queue){
+    if(!isQueen(currentBoard, row, col)){
+        if(isValidPosition(currentBoard, row, col)){
+            Board next = generateNextBoard(currentBoard, row, col);
+            if(!isContained(set, &next)){
+                addToSet(set, next);
+                if(isSolution(&next)){
+                    // addToSet(&set, next);
+                    addToResult(&next, result);
+                }
+                else{
+                    addToQueue(queue, next);
+                }
+            }
+        }
+    }
 }
 
 void solveBoards(Result* result, int boardSize) {
@@ -188,21 +205,7 @@ void solveBoards(Result* result, int boardSize) {
 
         for(int row=0;row<boardSize;row++){
             for(int col=0;col<boardSize;col++){
-                if(!isQueen(&currentBoard, row, col)){
-                    if(isValidPosition(&currentBoard, row, col)){
-                        Board next = generateNextBoard(&currentBoard, row, col);
-                        if(!isContained(&set, &next)){
-                            addToSet(&set, next);
-                            if(isSolution(&next)){
-                                // addToSet(&set, next);
-                                addToResult(&next, result);
-                            }
-                            else{
-                                addToQueue(&queue, next);
-                            }
-                        }
-                    }
-                }
+                checkNextBoards(&currentBoard, result, row, col, &set, &queue);
             }
         }
     }
@@ -270,7 +273,7 @@ void addToResult(Board* currentBoard, Result* result) {
 void initializeResult(Result* result) {
     result->nextIndex = 0;
     for (int row = 0; row < MAX_SOLUTION_SIZE; row++) {
-        for (int col = 0; col < MAX_BOARD_SIZE + 4; col++) {
+        for (int col = 0; col < MAX_BOARD_SIZE; col++) {
             result->arr[row][col] = 0;
         }
     }
@@ -281,7 +284,6 @@ void fillValueInResult(Result* res, int it, int val) {
     res->arr[nextIndex][it] = val;
 }
 
-// optimize to use bitmasks
 bool isValidPosition(Board* currentBoard, int row, int col) {
     bool isValidRow = checkRow(currentBoard, row);
     if(!isValidRow){
@@ -310,23 +312,11 @@ void initializeQueue(Queue* queue) {
 }
 
 bool checkColumn(Board* b, int col){
-    // for(int row=0;row<b->size;row++){
-    //     if(isQueen(b, row, col)){
-    //         return false;
-    //     }
-    // }
-    // return true;
     int colMask = b->colMask;
     return ((colMask & (1 << col)) == 0);
 }
 
 bool checkRow(Board* b, int row){
-    // for(int col=0;col<b->size;col++){
-    //     if(isQueen(b, row, col)){
-    //         return false;
-    //     }
-    // }
-    // return true;
     if(b->arr[row] > 0){
         return false;
     }
@@ -334,50 +324,12 @@ bool checkRow(Board* b, int row){
 }
 
 bool checkDiagonal1(Board* b, int row, int col){
-    // int size = b->size;
-    // int r = row, c = col;
-    // while(r < size && c < size){
-    //     if(isQueen(b, r, c)){
-    //         return false;
-    //     }
-    //     r++;
-    //     c++;
-    // }
-    // r = row-1;
-    // c = col-1;
-    // while(r >= 0 && c >= 0){
-    //     if(isQueen(b, r, c)){
-    //         return false;
-    //     }
-    //     r--;
-    //     c--;
-    // }
-    // return true;
     int diag1Mask = b->diagonal1Mask;
     int diag1Val = row - col + MAX_BOARD_SIZE;
     return ((diag1Mask & (1 << diag1Val)) == 0);
 }
 
 bool checkDiagonal2(Board* b, int row, int col){
-    // int size = b->size;
-    // int r = row, c = col;
-    // while(r >= 0 && c < size){
-    //     if(isQueen(b, r, c)){
-    //         return false;
-    //     }
-    //     r--;
-    //     c++;
-    // }
-    // r = row+1;
-    // c = col-1;
-    // while(r < size && c >= 0){
-    //     if(isQueen(b, r, c)){
-    //         return false;
-    //     }
-    //     r++;
-    //     c--;
-    // }
-    // return true;
     int diag2Mask = b->diagonal2Mask;
     int diag2Val = row + col;
     return ((diag2Mask & (1 << diag2Val)) == 0);
@@ -392,6 +344,7 @@ bool isQueen(Board* board, int row, int col){
 
 
 void test(void) {
+    testValidFlag();
     assert(sizeof(int) == 4);
     // Queue q;
     // initializeQueue(&q);
@@ -426,39 +379,9 @@ void test(void) {
     // printf("here\n");
 }
 
-void printBoard(Board* board){
-    for(int i=0;i<board->size;i++){
-        for(int j=0;j<board->size;j++){
-            if(isQueen(board, i, j)){
-                printf("Q ");
-            }
-            else{
-                printf(". ");
-            }
-        }
-        printf("\n");
-    }
-}
-void print2Board(Board* a, Board* b){
-    printf("first board and next board\n");
-    for(int i=0;i<a->size;i++){
-        for(int j=0;j<a->size;j++){
-            if(isQueen(a, i, j)){
-                printf("Q ");
-            }
-            else{
-                printf(". ");
-            }
-        }
-        printf("\t");
-        for(int j=0;j<b->size;j++){
-            if(isQueen(b, i, j)){
-                printf("Q ");
-            }
-            else{
-                printf(". ");
-            }
-        }
-        printf("\n");
-    }
+void testValidFlag(void){
+    assert(isValidFlag("-verbose"));
+    assert(!isValidFlag("--verbose"));
+    assert(!isValidFlag(" "));
+    assert(!isValidFlag("6"));
 }

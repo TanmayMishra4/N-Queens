@@ -406,6 +406,7 @@ void test(void) {
     testAddToResult();
     testFillValInResult();
     testSolveBoards();
+    testCheckNextBoards();
 }
 
 void testValidFlag(void){
@@ -689,6 +690,35 @@ void testSolveBoards(void){
 }
 
 void testCheckNextBoards(void){
+    Board b;
+    initializeBoard(&b, 3);
+    Set s;
+    initializeSet(&s);
+    Result r;
+    initializeResult(&r);
+    Queue q;
+    initializeQueue(&q);
+    checkNextBoards(&b, &r, 0, 0, &s, &q);
+    assert(r.nextIndex == 0);
+    assert(s.size == 1);
+    assert(!isQueueEmpty(&q));
+    assert(q.end == 1);
+    assert(q.start == 0);
 
+    initializeBoard(&b, 4);
+    initializeSet(&s);
+    initializeResult(&r);
+    initializeQueue(&q);
+    b = generateNextBoard(&b, 0, 1);
+    b = generateNextBoard(&b, 1, 3);
+    b = generateNextBoard(&b, 2, 0);
+
+    checkNextBoards(&b, &r, 3, 2, &s, &q);
+
+    assert(r.nextIndex == 1);
+    assert(s.size == 1);
+    assert(isQueueEmpty(&q));
+    assert(q.end == 0);
+    assert(q.start == 0);
 }
 

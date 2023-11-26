@@ -1,6 +1,10 @@
 {
     "files.associations": {
         "*.ejs": "html",
-        "assert.h": "c"
+        "assert.h": "c",
+        "stdbool.h": "c",
+        "stdio.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c"
     }
 }

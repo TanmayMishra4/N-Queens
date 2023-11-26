@@ -47,4 +47,3 @@ typedef struct Result {
     int arr[MAX_SOLUTION_SIZE][MAX_BOARD_SIZE];
     int nextIndex;
 } Result;
-

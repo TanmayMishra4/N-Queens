@@ -63,6 +63,8 @@ run:
 clean:
 	rm -f 8q 8q_san 8q.zip
 
-# Crete a .zip file using ALL files in this directory
-zip: 8q.c 8q.h
-	zip -r 8q.zip 8q.c 8q.h # extension.txt extension.c Makefile 
+# Create a .zip file using ALL files in this directory
+zip: 8q.c 8q.h extension.c extension.h extension.txt neillsdl2.c neillsdl2.h Makefile
+	zip -r 8q.zip 8q.c 8q.h extension.h extension.txt extension.c Makefile neillsdl2.c neillsdl2.h
+	
+	

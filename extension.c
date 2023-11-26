@@ -26,9 +26,23 @@ void printSizeOutOfBounds(void);
 void printWrongFlag(void);
 void drawChessBoard(SDL_Simplewin* sw, int boardSize);
 void drawQueens(SDL_Simplewin* sw, Result* result, int boardSize, int ind);
+
 void test(void);
-// void testAddToQueue(void);
-// void removeFromQueue(void);
+void testValidFlag(void);
+void testInitializeQueue(void);
+void testInitializeBoard(void);
+void testIsQueueEmpty(void);
+void testAddAndRemove(void);
+void testCheckCol(void);
+void testCheckDiagonal1(void);
+void testCheckDiagonal2(void);
+void testIsValidPosition(void);
+void testGenerateNextBoard(void);
+void testCopyBoard(void);
+void testInitializeResult(void);
+void testAddToResult(void);
+void testSolveBoards(void);
+void testFillValInResult(void);
 
 int main(int argc, char** argv) {
     int boardSize = 0;
@@ -38,7 +52,7 @@ int main(int argc, char** argv) {
     parseArgs(&boardSize, argc, argv);
 
     solveBoards(&result, boardSize);
-    
+
     if(argc == 3) {
         displayResult(&result, boardSize);
     }
@@ -48,7 +62,7 @@ int main(int argc, char** argv) {
 
 bool isValidFlag(char* flag) {
     return (strcmp(flag, VALID_FLAG) == 0);
-}
+    }
 
 void printUsage(void){
     fprintf(stderr, "usage : ./8q [-verbose](optional) [size of board]\n");
@@ -59,7 +73,8 @@ void printWrongArgs(void){
     exit(EXIT_FAILURE);
 }
 void printSizeOutOfBounds(void){
-    fprintf(stderr, "Invalid Board Size, Board size needs to be between 1 and 10 inclusive\n");
+    fprintf(stderr,
+    "Invalid Board Size, Board size needs to be between 1 and 10 inclusive\n");
     printUsage();
     exit(EXIT_FAILURE);
 }
@@ -67,7 +82,7 @@ void printWrongFlag(void){
     fprintf(stderr, "Wrong flag used, only -verbose allowed\n");
     printUsage();
     exit(EXIT_FAILURE);
-    
+
 }
 
 void parseArgs(int* boardSize, int argc, char** argv) {
@@ -97,6 +112,18 @@ Queue* initializeQueue(void) {
     queue->end = 0;
     queue->size = 0;
     return queue;
+}
+
+void freeQueue(Queue* queue){
+    if(queue != NULL){
+        Node* cur = queue->start;
+        while(cur != NULL){
+            Node* next = cur->next;
+            free(cur);
+            cur = next;
+        }
+        free(queue);
+    }
 }
 
 void freeQueue(Queue* queue){
@@ -161,7 +188,7 @@ void solveBoards(Result* result, int boardSize) {
     while (!isQueueEmpty(queue)) {
         Board currentBoard;
         removeFromQueue(queue, &currentBoard);
-        
+
         int nextRow = currentBoard.nextRow;
         if (nextRow < boardSize) {
             for (int col = 0; col < boardSize; col++) {
@@ -227,12 +254,13 @@ void addToResult(Board* currentBoard, Result* result) {
                 fillValueInResult(result, row, col + 1);
             }
         }
-    }
+        }
     result->nextIndex++;
 }
 void initializeResult(Result* result){
+    result->nextIndex = 0;
     for (int row = 0; row < MAX_SOLUTION_SIZE; row++) {
-        for (int col = 0; col < MAX_BOARD_SIZE + 4; col++) {
+        for (int col = 0; col < MAX_BOARD_SIZE; col++) {
             result->arr[row][col] = 0;
         }
     }
@@ -290,11 +318,11 @@ void drawQueens(SDL_Simplewin* sw, Result* result, int boardSize, int ind){
         int y = OFFSET + (row*CELLSIZE) + (CELLSIZE - QUEENSIZE)/2;
         rectangle.y = y%(WWIDTH-RECTSIZE);
         rectangle.x = x%(WHEIGHT-RECTSIZE);
-         printf("x = %i, y = %i\n", rectangle.x, rectangle.y);
+        printf("x = %i, y = %i\n", rectangle.x, rectangle.y);
         SDL_RenderFillRect(sw->renderer, &rectangle);
         SDL_RenderDrawRect(sw->renderer, &rectangle);
     }
-    
+
     Neill_SDL_UpdateScreen(sw);
     Neill_SDL_Events(sw);
     SDL_Delay(1000);
@@ -342,49 +370,224 @@ void displayUsingSDL(Result* result, int boardSize){
     rectangle.w = RECTSIZE;
     rectangle.h = RECTSIZE;
     Neill_SDL_Init(&sw);
-    do{
-        for(int ind=0;ind<result->nextIndex;ind++){
-            drawChessBoard(&sw, boardSize);
+    // do{
+    for(int ind=0;ind<result->nextIndex;ind++){
+        drawChessBoard(&sw, boardSize);
 
-            drawQueens(&sw, result, boardSize, ind);
-        }
+        drawQueens(&sw, result, boardSize, ind);
+    }
 
-        Neill_SDL_UpdateScreen(&sw);
-        Neill_SDL_Events(&sw);
+    Neill_SDL_UpdateScreen(&sw);
+    Neill_SDL_Events(&sw);
 
-   }while(!sw.finished);
-
-   SDL_Quit();
+    SDL_Quit();
    atexit(SDL_Quit);
 }
 
 void test(void) {
-    assert(sizeof(int) == 4);
-    // Queue q;
-    // initializeQueue(&q);
-    // assert(q.start == 0 && q.end == 0);
-    // Board b;
-    // initializeBoard(&b, 8);
-    // assert(b.size == 8 && b.nextRow == 0 && b.colMask == 0 && b.diagonal1Mask == 0 && b.diagonal2Mask == 0);
-    // addToQueue(&q, &b);
-    // assert(!isQueueEmpty(&q));
-    // // printf("%i %i\n", q.start, q.end);
-    // assert(q.end == 1 && q.start == 0);
-    // Board* r = removeFromQueue(&q);
-    // assert(q.start == 1 && q.end == 1);
-    // assert(isQueueEmpty(&q));
-    // // assert(r != NULL);
-    // Result res;
-    // initializeResult(&res);
-    // b.arr[2][0] = QUEEN;
-    // Board next = generateNextBoard(&b, 0, 0);
-    // printf("printing test board\n");
-    // printBoard(&next);
-    // printf("done printing test board\n");
-
-    // assert(next.arr[0][0] == QUEEN && next.arr[2][0] == QUEEN);
-    // addToResult(&b, &res);
-    // assert(res.nextIndex == 1);
-    // printf("here\n");
+    testValidFlag();
+    testInitializeQueue();
+    testInitializeBoard();
+    // // testFillVal();
+    testCopyBoard();
+    testIsQueueEmpty();
+    testAddAndRemove();
+    testGenerateNextBoard();
+    testCheckCol();
+    testCheckDiagonal1();
+    testCheckDiagonal2();
+    testIsValidPosition();
+    testInitializeResult();
+    testAddToResult();
+    testFillValInResult();
+    testSolveBoards();
 }
 
+void testValidFlag(void){
+    assert(isValidFlag("-verbose"));
+    assert(!isValidFlag("--verbose"));
+    assert(!isValidFlag(" "));
+    assert(!isValidFlag("6"));
+}
+
+void testInitializeQueue(void){
+    Queue* queue = initializeQueue();
+    assert(queue->end == NULL && queue->start == NULL);
+    assert(queue->size == 0);
+    free(queue);
+    Queue* q = initializeQueue();
+    assert(q->end == NULL && q->start == NULL);
+    assert(q->size == 0);
+    free(q);
+}
+
+void testIsQueueEmpty(void){
+    Queue* queue = initializeQueue();
+    assert(isQueueEmpty(queue));
+    free(queue);
+}
+
+void testAddAndRemove(void){
+    Queue* queue = initializeQueue();
+    Board a;
+    initializeBoard(&a, 3);
+    addToQueue(queue, a);
+    assert(queue->size == 1);
+    assert(queue->end != NULL);
+    assert(queue->start != NULL);
+
+    Board b;
+    removeFromQueue(queue, &b);
+    assert(a.nextRow == b.nextRow);
+    assert(a.colMask == b.colMask);
+    assert(a.diagonal1Mask == b.diagonal1Mask);
+    assert(a.diagonal2Mask == b.diagonal2Mask);
+
+    for(int row=0;row<3;row++){
+        for(int col=0;col<3;col++){
+            assert(a.arr[row][col] == b.arr[row][col]);
+        }
+    }
+    free(queue);
+}
+
+void testInitializeBoard(void){
+    Board b;
+    int size = 3;
+    initializeBoard(&b, size);
+    assert(b.colMask == 0);
+    assert(b.diagonal1Mask == 0 && b.diagonal2Mask == 0);
+    assert(b.size == size);
+    for(int row=0;row<size;row++){
+        for(int col=0;col<size;col++){
+            assert(b.arr[row][col] == EMPTY);
+        }
+    }
+}
+
+void testCopyBoard(void){
+    Board a;
+    initializeBoard(&a, 3);
+    Board b;
+    a = generateNextBoard(&a, 0, 2);
+    copyBoard(&b, &a);
+    assert(b.colMask == a.colMask);
+    assert(b.diagonal1Mask == a.diagonal1Mask && b.diagonal2Mask == a.diagonal2Mask);
+    assert(b.size == a.size);
+    for(int row=0;row<a.size;row++){
+        for(int col=0;col<a.size;col++){
+            assert(b.arr[row][col] == a.arr[row][col]);
+        }
+    }
+}
+
+void testCheckCol(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board next = generateNextBoard(&a, 1, 2);
+    assert(!checkColumn(&next, 2));
+    assert(checkColumn(&next, 0));
+    next = generateNextBoard(&next, 3, 0);
+    assert(!checkColumn(&next, 0));
+    assert(checkColumn(&next, 3));
+}
+
+void testCheckDiagonal1(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board next = generateNextBoard(&a, 1, 2);
+    assert(!checkDiagonal1(&next, 0, 1));
+    assert(checkDiagonal1(&next, 0, 0));
+    next = generateNextBoard(&next, 3, 1);
+    assert(!checkDiagonal1(&next, 2, 0));
+    assert(checkDiagonal1(&next, 0, 0));
+}
+
+void testCheckDiagonal2(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board next = generateNextBoard(&a, 1, 2);
+    assert(!checkDiagonal2(&next, 0, 3));
+    assert(checkDiagonal2(&next, 0, 0));
+    next = generateNextBoard(&next, 2, 0);
+    assert(!checkDiagonal2(&next, 0, 2));
+    assert(checkDiagonal2(&next, 1, 3));
+}
+
+void testIsValidPosition(void){
+    Board a;
+    initializeBoard(&a, 3);
+    assert(isValidPosition(&a, 0, 0));
+    assert(isValidPosition(&a, 1, 2));
+    a = generateNextBoard(&a, 0, 0);
+    assert(isValidPosition(&a, 1, 2));
+    assert(!isValidPosition(&a,  1, 0));
+    assert(!isValidPosition(&a,  2, 0));
+}
+
+void testInitializeResult(void){
+    Result res;
+    initializeResult(&res);
+    // assert(res.nextIndex == 0);
+    // assert(res.arr != NULL);
+}
+
+void testAddToResult(void){
+    Result r;
+    initializeResult(&r);
+    Board a;
+    initializeBoard(&a, 3);
+    a = generateNextBoard(&a, 0, 0);
+    addToResult(&a, &r);
+    assert(r.nextIndex == 1);
+    assert(r.arr[0][0] == 1);
+    a = generateNextBoard(&a, 1, 2);
+    addToResult(&a, &r);
+    assert(r.nextIndex == 2);
+    assert(r.arr[1][1] == 3);
+}
+
+void testFillValInResult(void){
+    Result r;
+    initializeResult(&r);
+    fillValueInResult(&r, 0, 1);
+    assert(r.arr[0][0] == 1);
+    fillValueInResult(&r, 1, 3);
+    assert(r.arr[0][1] == 3);
+}
+
+void testGenerateNextBoard(void){
+    Board a;
+    initializeBoard(&a, 4);
+    Board b = generateNextBoard(&a, 0, 0);
+    assert(b.arr[0][0] == QUEEN);
+    assert(b.colMask == 1);
+    assert(b.diagonal2Mask == 1);
+
+    b = generateNextBoard(&b, 2, 2);
+    assert(b.arr[2][2] == QUEEN);
+    assert(b.colMask == 5);
+    assert(b.diagonal2Mask == 17);
+}
+
+void testSolveBoards(void){
+    Result r;
+    initializeResult(&r);
+    solveBoards(&r, 3);
+    assert(r.nextIndex == 0);
+    initializeResult(&r);
+    solveBoards(&r, 4);
+    assert(r.nextIndex == 2);
+    assert(r.arr[0][0] == 2);
+    assert(r.arr[0][1] == 4);
+    assert(r.arr[0][2] == 1);
+    assert(r.arr[1][2] == 4);
+
+    initializeResult(&r);
+    solveBoards(&r, 5);
+    assert(r.nextIndex == 10);
+
+    initializeResult(&r);
+    solveBoards(&r, 1);
+    assert(r.nextIndex == 1);
+}

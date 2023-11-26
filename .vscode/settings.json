@@ -3,6 +3,8 @@
         "*.ejs": "html",
         "assert.h": "c",
         "stdbool.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c"
     }
 }

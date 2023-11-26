@@ -35,6 +35,6 @@ typedef struct Set{
 } Set;
 
 typedef struct Result {
-    int arr[MAX_SOLUTION_SIZE][MAX_BOARD_SIZE];
+    int* arr;
     int nextIndex;
 } Result;

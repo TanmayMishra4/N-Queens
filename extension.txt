@@ -1,0 +1,18 @@
+This extension of the N-Queen program has the following optimizations to make it run faster:
+    1. This program uses dynamic queues which occupy only the memory required by the program at any time.
+    2. It uses a better backtracking algorithm, which after placing a queen in a row moves to the
+    next row without searching the current one to minimize the search space.
+    3. It uses bitmasks to search for queens in same row, column and both diagonals, thereby 
+    making it faster since it only requires O(1) time as opposed to O(N) time.
+
+Additionally this program also has additional graphical display of solutions. I am using the 
+SDL library wrapper provided by Neill in his repo to achieve this.
+
+Instructions to run the program:
+1. Run the following commands on the commandline
+    - make extension
+    - ./extension [-verbose](optional flag) [number of queens]
+
+The -verbose flag will display the solutions in SDL and terminal. The number of solutions and 
+original display appear on the terminal while the solutions in graphical form appear in a SDL
+window.

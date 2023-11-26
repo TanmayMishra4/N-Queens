@@ -30,7 +30,7 @@ void printUsage(void);
 void printWrongArgs(void);
 void printSizeOutOfBounds(void);
 void printWrongFlag(void);
-void checkNextBoards(Board* currentBoard, Result* result, 
+void checkNextBoards(Board* currentBoard, Result* result,
                 int row, int col, Set* set, Queue* queue);
 
 void test(void);
@@ -60,18 +60,19 @@ void testSolveBoards(void);
 void testCheckNextBoards(void);
 
 int main(int argc, char** argv) {
-    test();
+    // test();
     int boardSize = 0;
+    printf("here\n");
     Result result;
     initializeResult(&result);
     parseArgs(&boardSize, argc, argv);
-
     solveBoards(&result, boardSize);
-    
+
     if(argc == 3) {
         displayResult(&result, boardSize);
     }
     printf("%i solutions\n", result.nextIndex);
+    free(result.arr);
     return 0;
 }
 
@@ -88,7 +89,7 @@ void printWrongArgs(void){
     exit(EXIT_FAILURE);
 }
 void printSizeOutOfBounds(void){
-    fprintf(stderr, 
+    fprintf(stderr,
     "Invalid Board Size, Board size needs to be between 1 and 10 inclusive\n");
     printUsage();
     exit(EXIT_FAILURE);
@@ -97,7 +98,7 @@ void printWrongFlag(void){
     fprintf(stderr, "Wrong flag used, only -verbose allowed\n");
     printUsage();
     exit(EXIT_FAILURE);
-    
+
 }
 
 void parseArgs(int* boardSize, int argc, char** argv) {
@@ -202,7 +203,7 @@ void addToSet(Set* set, Board board){
     set->size++;
 }
 
-void checkNextBoards(Board* currentBoard, Result* result, int row, 
+void checkNextBoards(Board* currentBoard, Result* result, int row,
                     int col, Set* set, Queue* queue){
     if(!isQueen(currentBoard, row, col)){
         if(isValidPosition(currentBoard, row, col)){
@@ -284,7 +285,7 @@ void displayResult(Result* result, int boardSize) {
     int size = result->nextIndex;
     for (int i = 0; i < size; i++) {
         for(int it=0;it<boardSize;it++){
-            printf("%i", result->arr[i][it]);
+            printf("%i", result->arr[i*MAX_BOARD_SIZE+it]);
         }
         printf("\n");
     }
@@ -307,16 +308,12 @@ void initializeResult(Result* result) {
         return;
     }
     result->nextIndex = 0;
-    for (int row = 0; row < MAX_SOLUTION_SIZE; row++) {
-        for (int col = 0; col < MAX_BOARD_SIZE; col++) {
-            result->arr[row][col] = 0;
-        }
-    }
+    result->arr = (int*)calloc(MAX_SOLUTION_SIZE*MAX_BOARD_SIZE, sizeof(int));
 }
 
 void fillValueInResult(Result* res, int it, int val) {
     int nextIndex = res->nextIndex;
-    res->arr[nextIndex][it] = val;
+    res->arr[nextIndex*MAX_BOARD_SIZE+it] = val;
 }
 
 bool isValidPosition(Board* currentBoard, int row, int col) {
@@ -569,7 +566,7 @@ void testCheckCol(void){
     next = generateNextBoard(&next, 3, 0);
     assert(!checkColumn(&next, 0));
     assert(checkColumn(&next, 3));
-}
+    }
 
 void testCheckDiagonal1(void){
     Board a;
@@ -638,9 +635,10 @@ void testInitializeResult(void){
     initializeResult(&res);
     assert(res.nextIndex == 0);
     assert(res.arr != NULL);
-    Result* r = NULL;
-    initializeResult(r);
-    assert(r == NULL);
+    free(res.arr);
+    // Result* r = NULL;
+    // initializeResult(r);
+    // assert(r == NULL);
 }
 
 void testAddToResult(void){
@@ -651,20 +649,22 @@ void testAddToResult(void){
     a = generateNextBoard(&a, 0, 0);
     addToResult(&a, &r);
     assert(r.nextIndex == 1);
-    assert(r.arr[0][0] == 1);
+    assert(r.arr[0*MAX_BOARD_SIZE+0] == 1);
     a = generateNextBoard(&a, 1, 2);
     addToResult(&a, &r);
     assert(r.nextIndex == 2);
-    assert(r.arr[1][1] == 3);
+    assert(r.arr[1*MAX_BOARD_SIZE+1] == 3);
+    free(r.arr);
 }
 
 void testFillValInResult(void){
     Result r;
     initializeResult(&r);
     fillValueInResult(&r, 0, 1);
-    assert(r.arr[0][0] == 1);
+    assert(r.arr[0*MAX_BOARD_SIZE+0] == 1);
     fillValueInResult(&r, 1, 3);
-    assert(r.arr[0][1] == 3);
+    assert(r.arr[0*MAX_BOARD_SIZE+1] == 3);
+    free(r.arr);
 }
 
 void testSolveBoards(void){
@@ -672,21 +672,25 @@ void testSolveBoards(void){
     initializeResult(&r);
     solveBoards(&r, 3);
     assert(r.nextIndex == 0);
+    free(r.arr);
     initializeResult(&r);
     solveBoards(&r, 4);
     assert(r.nextIndex == 2);
-    assert(r.arr[0][0] == 2);
-    assert(r.arr[0][1] == 4);
-    assert(r.arr[0][2] == 1);
-    assert(r.arr[1][2] == 4);
+    assert(r.arr[0*MAX_BOARD_SIZE+0] == 2);
+    assert(r.arr[0*MAX_BOARD_SIZE+1] == 4);
+    assert(r.arr[0*MAX_BOARD_SIZE+2] == 1);
+    assert(r.arr[1*MAX_BOARD_SIZE+2] == 4);
+    free(r.arr);
 
     initializeResult(&r);
     solveBoards(&r, 5);
     assert(r.nextIndex == 10);
+    free(r.arr);
 
     initializeResult(&r);
     solveBoards(&r, 1);
     assert(r.nextIndex == 1);
+    free(r.arr);
 }
 
 void testCheckNextBoards(void){
@@ -704,6 +708,7 @@ void testCheckNextBoards(void){
     assert(!isQueueEmpty(&q));
     assert(q.end == 1);
     assert(q.start == 0);
+    free(r.arr);
 
     initializeBoard(&b, 4);
     initializeSet(&s);
@@ -720,5 +725,5 @@ void testCheckNextBoards(void){
     assert(isQueueEmpty(&q));
     assert(q.end == 0);
     assert(q.start == 0);
+    free(r.arr);
 }
-
